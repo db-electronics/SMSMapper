@@ -1,0 +1,257 @@
+--*************************************************************
+--
+--  $Rev:: 290                                            $:  Revision of last commit
+--  $Author:: reneleonrichard                             $:  Author of last commit
+--  $Date:: 2014-09-09 12:56:43 -0400 (Tue, 09 Sep 2014)  $:  Date of last commit
+--  $HeadURL: https://subversion.assembla.com/svn/db_repository/trunk/FPGAProjects/SMSCart/src/SMSCart.vhd $
+--
+--*************************************************************
+--  db Mapper
+--  Copyright 2014 Rene Richard
+--  DEVICE : EPM3064ATC100-10
+--*************************************************************
+--
+--  Description:
+--		This is a VHDL implementation of a hybrid Sega + Codemasters SMS ROM mapper - the db Mapper
+--		it is intended to be used on the db Electronics SMS Homebrew Carts
+--		Supported Flash Memory Configurations:
+--			1Mbit (1x 1Mbit)
+--			2Mbit (1x 2Mbit)
+--			4Mbit (1x 4Mbit)
+--			8Mbit (2x 4Mbit)
+--		Support RAM Configurations
+--			32KB
+--
+--		for a complete description of SMS Mappers, go to http://www.smspower.org/Development/Mappers
+--*************************************************************
+--
+--	Hybridization Features:
+--		Register Merging:
+--			$0000 (CM) merged with $FFFD (SEGA)
+--			$4000 (CM) merged with $FFFE (SEGA)
+--			$8000 (CM) merged with $FFFF (SEGA)
+--			both addresses are valid
+--		RAM and Misc. Register
+--			$FFFC
+--				bit 7: ROM Write Enable
+--					when '1' writes to ROM (i.e. Flash) are enabled
+--					when '0' writes to mapper registers are enabled
+--				bit 3: RAM Enable
+--					when '1' RAM will be mapped into slot 2, overriding any ROM banking via $ffff/$8000
+--					when '0' ROM banking is effective
+--				bit 2: RAM Bank Select
+--					when '1' maps the upper 16KB of RAM into slot 2
+--					when '0' maps the lower 16KB of RAM into slot 2
+--		Mapping Mode:
+--			At power-up, the db Mapper defaults to SEGA mode (protects the first 1K of ROM)
+--			any writes to $0000, $4000 or $8000 change the mode to Codemasters and unprotect the first 1K of ROM
+--			mapping mode change is permanent, can only be undone by console reset or power down
+--*************************************************************
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+library altera; 
+use altera.altera_primitives_components.all;
+
+entity SMSCart is 
+
+	port (
+			--input from sms
+			ADDR_p		:	in		std_logic_vector(15 downto 0);
+			DATA_p		:	inout 	std_logic_vector(7 downto 0);
+			nRST_p		:	in 		std_logic;
+			nWR_p		:	in		std_logic;
+			nMREQ_p		:	in		std_logic;
+			
+			--output to ROM
+			nROMWR_p		:	out	std_logic;
+			nROMCE0_p		:	out	std_logic;
+			nROMCE1_p		:	out std_logic;
+			ROMADDR1814_p	:	out	std_logic_vector(5 downto 0);
+			
+			--output to SRAM
+			nSRAMCE_p		:	out	std_logic;
+			SRAMADDR14_p	:	out	std_logic
+	);
+end entity; 
+
+architecture SMSCart_a of SMSCart is
+
+	--internal data and address signals for easy write back if ever needed
+	signal datain_s			:	std_logic_vector(7 downto 0);
+	signal addr_s			:	std_logic_vector(15 downto 0);
+	signal romAddr1914_s	:   std_logic_vector(5 downto 0);
+	
+	--Mapper slot registers, fitter will optimize any unused bits
+	signal romSlot0_s		:	std_logic_vector(7 downto 0);
+	signal romSlot1_s		:	std_logic_vector(7 downto 0);
+	signal romSlot2_s		:	std_logic_vector(7 downto 0);
+
+	--internal write signals
+	signal romWrEn_s		:	std_logic;
+	signal nMapWr_s			:	std_logic;
+	
+	--RAM mapping signals
+	signal ramEn_s			:	std_logic;
+	signal ramBank_s		:	std_logic;
+	
+	--Mapper Mode signal
+	signal segaMapper_s		:	std_logic;
+	
+begin
+
+	--internal data and address signals
+	addr_s <= ADDR_p; 
+	datain_s <= DATA_p;
+	
+	--output mapping to ROM and RAM
+	--	internally it is handled as 1x 1MB, externally it is 2x 512KB chips
+	--chip select to both ROMs handled in chipSelect process below
+	ROMADDR1814_p <= romAddr1914_s(4 downto 0);
+	SRAMADDR14_p <= ramBank_s;
+	
+	--ROM Write Gating with bit7 of $FFFC
+	--Mapper Writes are disabled when ROM Write is enabled to allow writing to
+	--	Codemasters registers without switching the mapper mode (see mapperMode process)
+	nROMWR_p <= nWR_p when romWrEn_s = '1' else '1';
+	nMapWr_s <= nWR_p when romWrEn_s = '0' else '1';
+	
+	--mapper mode register, default to Sega Mapper
+	--permanent switch to Codemasters if WR to $0000, $4000 or $8000
+	mapperMode: process( nRST_p, nMapWr_s, nMREQ_p, addr_s)
+	begin
+		if nRST_p = '0' then
+			segaMapper_s <= '1';
+		elsif nMapWr_s = '0' AND nMREQ_p = '0' then
+			if addr_s = x"0000" OR addr_s = x"4000" OR addr_s = x"8000" then
+				segaMapper_s <= '0';
+			end if;
+		end if;
+	end process;
+	
+	--RAM mapping and miscellaneous functions register
+	ram0: process( nRST_p, nWR_p, nMREQ_p, addr_s )
+	begin
+		if nRST_p = '0' then
+			romWrEn_s <= '0';
+			ramEn_s <= '0';
+			ramBank_s <= '0';
+		elsif nWR_p = '0' AND nMREQ_p = '0' then
+			if addr_s = x"FFFC" then
+				romWrEn_s <= datain_s(7);
+				ramEn_s <= datain_s(3);
+				ramBank_s <= datain_s(2);
+			end if;
+		end if;
+	end process;
+	
+	--slot 0 mapper register
+	slot0: process( nRST_p, nMapWr_s, nMREQ_p, addr_s)
+	begin
+		if nRST_p = '0' then
+			romSlot0_s <= x"00";
+		elsif nMapWr_s = '0' AND nMREQ_p = '0' then
+			if addr_s = x"FFFD" OR addr_s = x"0000" then
+				romSlot0_s <= datain_s;
+			end if;
+		end if;
+	end process;
+	
+	--slot 1 mapper register
+	slot1: process( nRST_p, nMapWr_s, nMREQ_p, addr_s)
+	begin
+		if nRST_p = '0' then
+			romSlot1_s <= x"01";
+		elsif nMapWr_s = '0' AND nMREQ_p = '0' then
+			if addr_s = x"FFFE" OR addr_s = x"4000" then
+				romSlot1_s <= datain_s;
+			end if;
+		end if;
+	end process;
+	
+	--slot 2 register
+	slot2: process( nRST_p, nMapWr_s, nMREQ_p, addr_s)
+	begin
+		if nRST_p = '0' then
+			romSlot2_s <= x"02";
+		elsif nMapWr_s = '0' AND nMREQ_p = '0' then
+			if addr_s = x"FFFF" OR addr_s = x"8000" then
+				romSlot2_s <= datain_s;
+			end if;
+		end if;
+	end process;
+	
+	--banking select
+	--only looks at address, this way the address setup and hold times can be respected
+	banking: process( addr_s )
+	begin
+		romAddr1914_s <= (others=>'0');
+		case addr_s(15 downto 14) is
+			when "00" =>
+				-- first kilobyte is always from bank 0 in SEGA MAPPER mode
+				if segaMapper_s = '1' then
+					if addr_s(13 downto 10)="0000" then
+						romAddr1914_s <= (others=>'0');
+					else
+						romAddr1914_s <= romSlot0_s(5 downto 0);
+					end if;
+				--else we're in Codemasters mode, no protection required
+				else
+					romAddr1914_s <= romSlot0_s(5 downto 0);
+				end if;
+			when "01" =>
+				romAddr1914_s <= romSlot1_s(5 downto 0);
+			when "10" =>
+				romAddr1914_s <= romSlot2_s(5 downto 0);
+			when others =>
+				romAddr1914_s <= (others=>'0');
+		end case;
+	end process;
+	
+	--drive chip select lines
+	chipSelect: process( addr_s, romAddr1914_s, ramEn_s, nMREQ_p )
+	begin
+		nSRAMCE_p <= '1';
+		nROMCE0_p <= '1';
+		nROMCE1_s <= '1';
+		case addr_s(15 downto 14) is
+			--slot 0
+			when "00" =>
+				--select upper or lower ROM based on A19 (romAddr1914_s(5))
+				if romAddr1914_s(5) = '0' then
+					nROMCE0_p <= nMREQ_p;
+				else
+					nROMCE1_p <= nMREQ_p;
+				end if;
+			--slot 1
+			when "01" =>
+				--select upper or lower ROM based on A19
+				if romAddr1914_s(5) = '0' then
+					nROMCE0_p <= nMREQ_p;
+				else
+					nROMCE1_p <= nMREQ_p;
+				end if;
+			--slot 2
+			when "10" =>
+				--RAM mapping has priority in Slot 2
+				if ramEn_s = '1' then
+					nSRAMCE_p <= nMREQ_p;
+				else
+					--select upper or lower ROM based on A19
+					if romAddr1914_s(5) = '0' then
+						nROMCE0_p <= nMREQ_p;
+					else
+						nROMCE1_p <= nMREQ_p;
+					end if;
+				end if;
+			when others =>
+				--don't drive anything in slot 4
+				nSRAMCE_p <= '1';
+				nROMCE0_p <= '1';
+				nROMCE1_p <= '1';
+		end case;
+	end process;
+	
+end SMSCart_a;
