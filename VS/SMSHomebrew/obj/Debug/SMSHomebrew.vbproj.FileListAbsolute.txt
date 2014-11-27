@@ -1,0 +1,20 @@
+C:\Trunk\Personal Projects\SMSHomebrew\Software\SMSHomebrew\bin\Debug\SMSHomebrew.exe.config
+C:\Trunk\Personal Projects\SMSHomebrew\Software\SMSHomebrew\bin\Debug\SMSHomebrew.exe
+C:\Trunk\Personal Projects\SMSHomebrew\Software\SMSHomebrew\bin\Debug\SMSHomebrew.pdb
+C:\Trunk\Personal Projects\SMSHomebrew\Software\SMSHomebrew\bin\Debug\SMSHomebrew.xml
+C:\Trunk\Personal Projects\SMSHomebrew\Software\SMSHomebrew\obj\Debug\SMSHomebrew.Form1.resources
+C:\Trunk\Personal Projects\SMSHomebrew\Software\SMSHomebrew\obj\Debug\SMSHomebrew.Resources.resources
+C:\Trunk\Personal Projects\SMSHomebrew\Software\SMSHomebrew\obj\Debug\SMSHomebrew.vbproj.GenerateResource.Cache
+C:\Trunk\Personal Projects\SMSHomebrew\Software\SMSHomebrew\obj\Debug\SMSHomebrew.exe
+C:\Trunk\Personal Projects\SMSHomebrew\Software\SMSHomebrew\obj\Debug\SMSHomebrew.xml
+C:\Trunk\Personal Projects\SMSHomebrew\Software\SMSHomebrew\obj\Debug\SMSHomebrew.pdb
+C:\Git\SMSFlashCart\VS\SMSHomebrew\bin\Debug\SMSHomebrew.exe.config
+C:\Git\SMSFlashCart\VS\SMSHomebrew\obj\Debug\SMSHomebrew.exe
+C:\Git\SMSFlashCart\VS\SMSHomebrew\obj\Debug\SMSHomebrew.xml
+C:\Git\SMSFlashCart\VS\SMSHomebrew\obj\Debug\SMSHomebrew.pdb
+C:\Git\SMSFlashCart\VS\SMSHomebrew\bin\Debug\SMSHomebrew.exe
+C:\Git\SMSFlashCart\VS\SMSHomebrew\bin\Debug\SMSHomebrew.pdb
+C:\Git\SMSFlashCart\VS\SMSHomebrew\bin\Debug\SMSHomebrew.xml
+C:\Git\SMSFlashCart\VS\SMSHomebrew\obj\Debug\SMSHomebrew.Form1.resources
+C:\Git\SMSFlashCart\VS\SMSHomebrew\obj\Debug\SMSHomebrew.Resources.resources
+C:\Git\SMSFlashCart\VS\SMSHomebrew\obj\Debug\SMSHomebrew.vbproj.GenerateResource.Cache
