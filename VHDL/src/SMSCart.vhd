@@ -67,9 +67,7 @@ entity SMSCart is
 			nROMCE0_p		:	out	std_logic;
 			nROMCE1_p		:	out 	std_logic;
 			ROMADDR1814_p	:	out	std_logic_vector(4 downto 0);
-			
-			BANKSHIFT_p		:  out	std_logic_vector(5 downto 0);
-			
+
 			--output to SRAM
 			nSRAMCE_p		:	out	std_logic;
 			SRAMADDR14_p	:	out	std_logic
@@ -113,8 +111,6 @@ begin
 	ROMADDR1814_p <= mapAddrShift_s(4 downto 0);
 	SRAMADDR14_p <= ramBank_s;
 	
-	BANKSHIFT_p <= bankShiftCode_s;
-	
 	--ROM Write Gating with bit7 of $FFFC
 	nROMWR_p <= nWR_p when romWrEn_s = '1' else '1';
 	
@@ -152,7 +148,7 @@ begin
 				case addr_s is
 					when x"FFFC" =>
 						if bankShiftCode_s = "101101" then
-							bankShiftEn_s <= '1';
+							bankShiftEn_s <= '0';
 						end if;
 					when x"FFFD" => 
 						bankShiftCode_s(1 downto 0) <= datain_s(7 downto 6);
