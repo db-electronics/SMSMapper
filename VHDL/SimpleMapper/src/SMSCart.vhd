@@ -30,7 +30,7 @@
 --					when '1' writes to ROM (i.e. Flash) are enabled
 --					when '0' writes to mapper registers are enabled
 --				bit 3: RAM Enable
---					when '1' RAM will be mapped into slot 2, overriding any ROM banking via $ffff/$8000
+--					when '1' RAM will be mapped into slot 2, overriding any ROM banking via $ffff
 --					when '0' ROM banking is effective
 --				bit 2: RAM Bank Select
 --					when '1' maps the upper 16KB of RAM into slot 2
@@ -61,7 +61,7 @@ entity SMSCart is
 			nROMCE_p			:	out	std_logic;
 			ROMADDR1914_p	:	out	std_logic_vector(5 downto 0);
 
-			--out to serial EEPROM
+			--output to serial EEPROM
 			EE_CS_p			: 	out	std_logic;
 			EE_SO_p			:	out	std_logic;
 			EE_SI_p			:	out	std_logic;
@@ -112,11 +112,11 @@ begin
 	ROMADDR1914_p(4) <= '0' when mapAddr_s(4) = '0' else 'Z';
 	ROMADDR1914_p(5) <= '0' when mapAddr_s(5) = '0' else 'Z';
 	--ROM Write Gating with bit7 of $FFFC
-	nRomWE_s <= nCE_p when romWrEn_s = '1' else 'Z';
+	nRomWE_s <= nCE_p when romWrEn_s = '1' else '1';
 	nROMWE_p <= '0' when nRomWE_s = '0' else 'Z';
 	nROMCE_p <= '0' when nRomCE_s = '0' else 'Z';
 	
-	--default values for now
+	--default values for now, todo later
 	EE_CS_p <= '1';
 	EE_SO_p <= '1';
 	EE_SI_p <= '1';
@@ -170,7 +170,7 @@ begin
 		mapAddr_s <= (others=>'0');
 		case addr_s(15 downto 14) is
 			when "00" =>
-				-- first kilobyte is always from bank 0 in SEGA MAPPER mode
+				-- first kilobyte is always from bank 0 in SEGA MAPPER
 				if addr_s(13 downto 10)="0000" then
 					mapAddr_s <= (others=>'0');
 				else
