@@ -3,4 +3,4 @@ SMSFlashCart
 
 Sega Master System Homebrew Flash Cart
 
-This project is built using MPLAB 8.xx and references some .c files found in the C18 section of my library repo
+The C18 version of this project is deprecated, newer versions will be built on the Teensy++ 2.0 microcontroller.
