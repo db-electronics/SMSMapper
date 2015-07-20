@@ -107,3 +107,5 @@ set_location_assignment PIN_68 -to EE_CS_p
 set_location_assignment PIN_71 -to EE_SCK_p
 set_location_assignment PIN_75 -to EE_SI_p
 set_location_assignment PIN_69 -to EE_SO_p
+set_location_assignment PIN_79 -to nSRAMWE_p
+set_location_assignment PIN_46 -to nOE_p

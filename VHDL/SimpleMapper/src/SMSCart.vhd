@@ -69,6 +69,7 @@ entity SMSCart is
 			
 			--output to SRAM
 			nSRAMCE_p		:	out	std_logic;
+			nSRAMWE_p		:  out   std_logic;
 			SRAMADDR14_p	:	out	std_logic
 	);
 end entity; 
@@ -111,6 +112,7 @@ begin
 	ROMADDR1914_p(3) <= '0' when mapAddr_s(3) = '0' else 'Z';
 	ROMADDR1914_p(4) <= '0' when mapAddr_s(4) = '0' else 'Z';
 	ROMADDR1914_p(5) <= '0' when mapAddr_s(5) = '0' else 'Z';
+	
 	--ROM Write Gating with bit7 of $FFFC
 	nRomWE_s <= nCE_p when romWrEn_s = '1' else '1';
 	nROMWE_p <= '0' when nRomWE_s = '0' else 'Z';
@@ -188,6 +190,7 @@ begin
 	--drive chip select lines
 	chipSelect: process( addr_s, ramEn_s, nCE_p )
 	begin
+		nSRAMWE_p <= '1';
 		nSRAMCE_p <= '1';
 		nRomCE_s <= '1';
 		case addr_s(15 downto 14) is
@@ -202,12 +205,14 @@ begin
 				--RAM mapping has priority in Slot 2
 				if ramEn_s = '1' then
 					nSRAMCE_p <= nCE_p;
+					nSRAMWE_p <= nWR_p;
 				else
 					--select upper or lower ROM based on A19
 					nRomCE_s <= nCE_p;
 				end if;
 			when others =>
 				--don't drive anything in slot 4
+				nSRAMWE_p <= '1';
 				nSRAMCE_p <= '1';
 				nRomCE_s <= '1';
 		end case;
