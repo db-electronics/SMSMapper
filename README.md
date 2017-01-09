@@ -1,6 +1,1 @@
-SMSFlashCart
-============
-
-Sega Master System Homebrew Flash Cart
-
-The C18 version of this project is deprecated, newer versions will be built on the Teensy++ 2.0 microcontroller.
+The SimpleMapper directory contains the VHDL for a bare bones mapper which attempts to replicate a Sega Mapper - no fancy features added.
