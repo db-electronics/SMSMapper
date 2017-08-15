@@ -66,6 +66,10 @@ architecture SMSCart_a of SMSCart is
 begin
 
 	SMSMapper_inst: entity work.SMSMapper
+		generic map(
+			SLOT0ENABLE => true,
+			SLOT1ENABLE => true
+		)
 		port map(
 			ADDR_p => ADDR_p,
 			DATA_p => DATA_p,

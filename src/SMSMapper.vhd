@@ -35,29 +35,34 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity SMSMapper is 
 
-	port (
-			--input from sms
-			ADDR_p			:	in		std_logic_vector(15 downto 0);
-			DATA_p			:	in 	std_logic_vector(7 downto 0);
-			nRST_p			:	in 	std_logic;
-			nWR_p				:	in		std_logic;
-			nCE_p				:	in		std_logic;
-			
-			--output to ROM
-			nROMWE_p			:	out	std_logic;
-			nROMCE_p			:	out	std_logic;
-			ROMADDR1914_p	:	out	std_logic_vector(5 downto 0);
+	generic(
+		SLOT0ENABLE 	:	boolean	:= true;
+		SLOT1ENABLE		: 	boolean	:= true
+	);
 
-			--output to serial EEPROM
-			EE_CS_p			: 	out	std_logic;
-			EE_SO_p			:	out	std_logic;
-			EE_SI_p			:	out	std_logic;
-			EE_SCK_p			:	out	std_logic;
-			
-			--output to SRAM
-			nSRAMCE_p		:	out	std_logic;
-			nSRAMWE_p		:  out   std_logic;
-			SRAMADDR14_p	:	out	std_logic
+	port (
+		--input from sms
+		ADDR_p			:	in		std_logic_vector(15 downto 0);
+		DATA_p			:	in 	std_logic_vector(7 downto 0);
+		nRST_p			:	in 	std_logic;
+		nWR_p				:	in		std_logic;
+		nCE_p				:	in		std_logic;
+		
+		--output to ROM
+		nROMWE_p			:	out	std_logic;
+		nROMCE_p			:	out	std_logic;
+		ROMADDR1914_p	:	out	std_logic_vector(5 downto 0);
+
+		--output to serial EEPROM
+		EE_CS_p			: 	out	std_logic;
+		EE_SO_p			:	out	std_logic;
+		EE_SI_p			:	out	std_logic;
+		EE_SCK_p			:	out	std_logic;
+		
+		--output to SRAM
+		nSRAMCE_p		:	out	std_logic;
+		nSRAMWE_p		:  out   std_logic;
+		SRAMADDR14_p	:	out	std_logic
 	);
 end entity; 
 

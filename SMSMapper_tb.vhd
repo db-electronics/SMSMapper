@@ -54,14 +54,35 @@ begin
 		begin
 			nRST <= '0';
 			DATA <= ( others => 'Z');
+			nROMWE <= 'H';
+			nROMCE <= 'H';
+			ROMADDR1914 <= (others => 'H');
 			ADDR <= ( others => '1');
 			nCE <= '1';
 			nWR <= '1';
-			wait for 100 ns;
+			wait for 10 ns;
 			
-			DATA <= x"AA";
-			ADDR <= x"1234";
-			wait for 100 ns;
+			nRST <= '1';
+			DATA <= x"04";
+			ADDR <= x"FFFD";
+			wait for 5 ns;
+			
+			nCE <= '0';
+			nWR <= '0';
+			wait for 15 ns;
+			
+			nCE <= '1';
+			nWR <= '1';
+			wait for 5 ns;
+			
+			ADDR <= x"2000";
+			wait for 5 ns;
+			
+			nCE <= '0';
+			wait for 15 ns;
+			
+			nCE <= '1';
+			wait for 5 ns;
 			
 			stop(0);
 		end process;
