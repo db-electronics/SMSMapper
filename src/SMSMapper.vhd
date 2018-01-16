@@ -73,7 +73,6 @@ architecture SMSMapper_a of SMSMapper is
 	signal addr_s			:	std_logic_vector(15 downto 0);
 	
 	--Mapper slot registers, fitter will optimize any unused bits
-	signal romSlot0_s		:	std_logic_vector(5 downto 0);
 	signal romSlot1_s		:	std_logic_vector(5 downto 0);
 	signal romSlot2_s		:	std_logic_vector(5 downto 0);
 	signal mapAddr_s		: 	std_logic_vector(5 downto 0);
@@ -106,7 +105,7 @@ begin
 	ROMADDR1914_p(5) <= '0' when mapAddr_s(5) = '0' else 'Z';
 	
 	--ROM Write Gating with bit7 of $FFFC
-	nRomWE_s <= nCE_p when romWrEn_s = '1' else '1';
+	nRomWE_s <= nWR_p when romWrEn_s = '1' else '1';
 	nROMWE_p <= '0' when nRomWE_s = '0' else 'Z';
 	nROMCE_p <= '0' when nRomCE_s = '0' else 'Z';
 	
@@ -137,15 +136,12 @@ begin
 	mappers: process( nRST_p, nWR_p, nCE_p, addr_s)
 	begin
 		if nRST_p = '0' then
-			romSlot0_s <= "000000";
 			romSlot1_s <= "000001";
 			romSlot2_s <= "000010";
 		--nWR rises before address and mreq on Z80
 		elsif falling_edge(nWR_p) then
 			if nCE_p = '0' then
 				case addr_s is
-					when x"FFFD" => 
-						romSlot0_s <= datain_s(5 downto 0);
 					when x"FFFE" =>
 						romSlot1_s <= datain_s(5 downto 0);
 					when x"FFFF" =>
@@ -163,13 +159,6 @@ begin
 	begin
 		mapAddr_s <= (others=>'0');
 		case addr_s(15 downto 14) is
-			when "00" =>
-				-- first kilobyte is always from bank 0 in SEGA MAPPER
-				if addr_s(13 downto 10)="0000" then
-					mapAddr_s <= (others=>'0');
-				else
-					mapAddr_s <= romSlot0_s(5 downto 0);
-				end if;
 			when "01" =>
 				mapAddr_s <= romSlot1_s(5 downto 0);
 			when "10" =>

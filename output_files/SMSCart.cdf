@@ -4,7 +4,7 @@ JedecChain;
 	DefaultMfr(6E);
 
 	P ActionCode(Cfg)
-		Device PartName(EPM3064AT100) Path("W:/Git/SMSFlashCart/VHDL/SimpleMapper/output_files/") File("SMSCart.pof") MfrSpec(OpMask(3));
+		Device PartName(EPM3064AT100) Path("/home/rene/Git/Quartus/SMSMapper/output_files/") File("SMSCart.pof") MfrSpec(OpMask(3));
 
 ChainEnd;
 
